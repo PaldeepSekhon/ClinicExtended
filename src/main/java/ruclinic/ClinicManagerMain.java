@@ -10,7 +10,7 @@ import java.io.IOException;
 public class ClinicManagerMain extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ClinicManagerMain.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ClinicManagerMain.class.getResource("clinic-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
         stage.setTitle("RUClinic Appointment Manager");
