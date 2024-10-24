@@ -3,6 +3,6 @@ module com.example.sophmeth_proj {
     requires javafx.fxml;
 
 
-    opens com.example.sophmeth_proj3 to javafx.fxml;
-    exports com.example.sophmeth_proj3;
+    opens ruclinic to javafx.fxml;
+    exports ruclinic;
 }

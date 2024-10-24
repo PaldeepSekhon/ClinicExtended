@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.collections.*?>
+<?import javafx.geometry.Insets?>
+<?import java.lang.String?>
+
+<TabPane xmlns:fx="http://javafx.com/fxml" fx:controller="ruclinic.ClinicManagerController">
+    <tabs>
+        <!-- Appointments Tab -->
+        <Tab text="Appointment Management">
+            <VBox spacing="10" padding="10">
+                <GridPane hgap="10" vgap="10" alignment="CENTER">
+                    <!-- Patient Information Section -->
+                    <Label text="Patient Information" style="-fx-font-weight: bold"
+                           GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
+
+                    <Label text="First Name:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <TextField fx:id="patientFirstNameField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                    <Label text="Last Name:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                    <TextField fx:id="patientLastNameField" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+
+                    <Label text="Date of Birth:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <TextField fx:id="dobField" promptText="MM/DD/YYYY" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                    <!-- Appointment Details Section -->
+                    <Label text="Appointment Details" style="-fx-font-weight: bold"
+                           GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
+
+                    <Label text="Date:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                    <TextField fx:id="appointmentDateField" promptText="MM/DD/YYYY"
+                               GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                    <Label text="Time Slot:" GridPane.rowIndex="4" GridPane.columnIndex="2"/>
+                    <ComboBox fx:id="timeSlotComboBox" GridPane.rowIndex="4" GridPane.columnIndex="3">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="9:00 AM"/>
+                                <String fx:value="9:30 AM"/>
+                                <String fx:value="10:00 AM"/>
+                                <String fx:value="10:30 AM"/>
+                                <String fx:value="11:00 AM"/>
+                                <String fx:value="11:30 AM"/>
+                                <String fx:value="2:00 PM"/>
+                                <String fx:value="2:30 PM"/>
+                                <String fx:value="3:00 PM"/>
+                                <String fx:value="3:30 PM"/>
+                                <String fx:value="4:00 PM"/>
+                                <String fx:value="4:30 PM"/>
+                            </FXCollections>
+                        </items>
+                    </ComboBox>
+
+                    <!-- Appointment Type Selection -->
+                    <Label text="Appointment Type:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                    <HBox spacing="10" GridPane.rowIndex="5" GridPane.columnIndex="1">
+                        <RadioButton text="Office Visit" fx:id="officeVisitRadio" selected="true">
+                            <toggleGroup>
+                                <ToggleGroup fx:id="appointmentTypeGroup"/>
+                            </toggleGroup>
+                        </RadioButton>
+                        <RadioButton text="Imaging" fx:id="imagingRadio" toggleGroup="$appointmentTypeGroup"/>
+                    </HBox>
+
+                    <!-- Office Visit Specific -->
+                    <VBox fx:id="officeVisitBox" spacing="5" GridPane.rowIndex="6" GridPane.columnIndex="0"
+                          GridPane.columnSpan="4">
+                        <Label text="Provider NPI:"/>
+                        <TextField fx:id="providerNPIField"/>
+                    </VBox>
+
+                    <!-- Imaging Specific -->
+                    <VBox fx:id="imagingBox" spacing="5" GridPane.rowIndex="6" GridPane.columnIndex="0"
+                          GridPane.columnSpan="4" visible="false">
+                        <Label text="Imaging Type:"/>
+                        <ComboBox fx:id="imagingTypeComboBox">
+                            <items>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="XRAY"/>
+                                    <String fx:value="ULTRASOUND"/>
+                                    <String fx:value="CATSCAN"/>
+                                </FXCollections>
+                            </items>
+                        </ComboBox>
+                    </VBox>
+
+                    <!-- Action Buttons -->
+                    <HBox spacing="10" GridPane.rowIndex="7" GridPane.columnSpan="4" alignment="CENTER">
+                        <Button text="Schedule" onAction="#handleScheduleAppointment"/>
+                        <Button text="Cancel Appointment" onAction="#handleCancelAppointment"/>
+                        <Button text="Reschedule" onAction="#handleRescheduleAppointment"/>
+                    </HBox>
+
+                    <!-- Reschedule Section -->
+                    <VBox fx:id="rescheduleBox" spacing="5" GridPane.rowIndex="8" GridPane.columnSpan="4" visible="false">
+                        <Label text="New Time Slot:"/>
+                        <ComboBox fx:id="newTimeSlotComboBox"/>
+                    </VBox>
+                </GridPane>
+
+                <!-- Appointment Table -->
+                <TableView fx:id="appointmentTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="dateColumn" text="Date"/>
+                        <TableColumn fx:id="timeColumn" text="Time"/>
+                        <TableColumn fx:id="patientNameColumn" text="Patient Name"/>
+                        <TableColumn fx:id="dobColumn" text="DOB"/>
+                        <TableColumn fx:id="providerColumn" text="Provider/Service"/>
+                        <TableColumn fx:id="locationColumn" text="Location"/>
+                    </columns>
+                </TableView>
+
+                <!-- Status Messages -->
+                <TextArea fx:id="statusMessageArea" prefHeight="100" editable="false"/>
+            </VBox>
+        </Tab>
+
+        <!-- Reports Tab -->
+        <Tab text="Reports">
+            <VBox spacing="10" padding="10">
+                <HBox spacing="10" alignment="CENTER">
+                    <Button text="View Office Appointments" onAction="#handleViewOfficeAppointments"/>
+                    <Button text="View Imaging Appointments" onAction="#handleViewImagingAppointments"/>
+                    <Button text="View Provider Credits" onAction="#handleViewProviderCredits"/>
+                </HBox>
+
+                <TableView fx:id="reportsTable" VBox.vgrow="ALWAYS">
+                    <!-- Columns will be set dynamically based on report type -->
+                </TableView>
+            </VBox>
+        </Tab>
+
+        <!-- Providers Tab -->
+        <Tab text="Providers">
+            <VBox spacing="10" padding="10">
+                <!-- Provider List -->
+                <TableView fx:id="providerTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="providerNameColumn" text="Name"/>
+                        <TableColumn fx:id="providerTypeColumn" text="Type"/>
+                        <TableColumn fx:id="providerSpecialtyColumn" text="Specialty"/>
+                        <TableColumn fx:id="providerNPIColumn" text="NPI"/>
+                        <TableColumn fx:id="providerLocationColumn" text="Location"/>
+                    </columns>
+                </TableView>
+
+                <!-- Provider Status Messages -->
+                <TextArea fx:id="providerStatusArea" prefHeight="100" editable="false"/>
+            </VBox>
+        </Tab>
+    </tabs>
+</TabPane>
