@@ -1,236 +1,254 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.collections.*?>
 <?import javafx.geometry.Insets?>
 <?import java.lang.String?>
+<?import javafx.scene.control.ToggleGroup?>
 
-<TabPane xmlns:fx="http://javafx.com/fxml" fx:controller="ruclinic.ClinicManagerController">
+<TabPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ruclinic.ClinicManagerController">
     <tabs>
         <!-- Appointments Tab -->
-        <Tab text="_Appointment Management">
-            <VBox spacing="10" padding="10">
-                <GridPane hgap="10" vgap="10" alignment="CENTER">
-                    <!-- Patient Information Section -->
-                    <Label text="Patient Information" style="-fx-font-weight: bold; -fx-font-size: 14px;"
-                           GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
+        <Tab text="_Appointment Management" closable="false">
+            <content>
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                    <GridPane hgap="10" vgap="10" alignment="CENTER">
+                        <!-- Patient Information Section -->
+                        <Label text="Patient Information" style="-fx-font-weight: bold; -fx-font-size: 14px;"
+                               GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
 
-                    <Label text="_First Name:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                    <TextField fx:id="patientFirstNameField" promptText="Enter first name"
-                               GridPane.rowIndex="1" GridPane.columnIndex="1">
-                        <tooltip>
-                            <Tooltip text="Enter patient's legal first name"/>
-                        </tooltip>
-                    </TextField>
-
-                    <Label text="_Last Name:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
-                    <TextField fx:id="patientLastNameField" promptText="Enter last name"
-                               GridPane.rowIndex="1" GridPane.columnIndex="3">
-                        <tooltip>
-                            <Tooltip text="Enter patient's legal last name"/>
-                        </tooltip>
-                    </TextField>
-
-                    <Label text="_Birth Date:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                    <DatePicker fx:id="dobField" promptText="MM/DD/YYYY"
-                                GridPane.rowIndex="2" GridPane.columnIndex="1">
-                        <tooltip>
-                            <Tooltip text="Select patient's date of birth"/>
-                        </tooltip>
-                    </DatePicker>
-
-                    <!-- Search Function -->
-                    <HBox spacing="10" GridPane.rowIndex="2" GridPane.columnIndex="2" GridPane.columnSpan="2">
-                        <TextField fx:id="searchField" promptText="Search patients..." HBox.hgrow="ALWAYS">
+                        <Label text="_First Name:" mnemonicParsing="true" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <TextField fx:id="patientFirstNameField" promptText="Enter first name"
+                                   GridPane.rowIndex="1" GridPane.columnIndex="1">
                             <tooltip>
-                                <Tooltip text="Search by patient name or ID"/>
+                                <Tooltip text="Enter patient's legal first name"/>
                             </tooltip>
                         </TextField>
-                        <Button text="_Search" onAction="#handlePatientSearch"/>
-                    </HBox>
 
-                    <!-- Appointment Details Section -->
-                    <Label text="Appointment Details" style="-fx-font-weight: bold; -fx-font-size: 14px;"
-                           GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
-
-                    <Label text="_Date:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-                    <DatePicker fx:id="appointmentDateField" promptText="Select date"
-                                GridPane.rowIndex="4" GridPane.columnIndex="1">
-                        <tooltip>
-                            <Tooltip text="Select appointment date"/>
-                        </tooltip>
-                    </DatePicker>
-
-                    <Label text="Time _Slot:" GridPane.rowIndex="4" GridPane.columnIndex="2"/>
-                    <ComboBox fx:id="timeSlotComboBox" GridPane.rowIndex="4" GridPane.columnIndex="3">
-                        <tooltip>
-                            <Tooltip text="Select available time slot"/>
-                        </tooltip>
-                        <items>
-                            <FXCollections fx:factory="observableArrayList">
-                                <String fx:value="9:00 AM"/>
-                                <String fx:value="9:30 AM"/>
-                                <String fx:value="10:00 AM"/>
-                                <String fx:value="10:30 AM"/>
-                                <String fx:value="11:00 AM"/>
-                                <String fx:value="11:30 AM"/>
-                                <String fx:value="2:00 PM"/>
-                                <String fx:value="2:30 PM"/>
-                                <String fx:value="3:00 PM"/>
-                                <String fx:value="3:30 PM"/>
-                                <String fx:value="4:00 PM"/>
-                                <String fx:value="4:30 PM"/>
-                            </FXCollections>
-                        </items>
-                    </ComboBox>
-
-                    <!-- Appointment Type Selection -->
-                    <Label text="Appointment _Type:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
-                    <HBox spacing="10" GridPane.rowIndex="5" GridPane.columnIndex="1">
-                        <fx:define>
-                            <ToggleGroup fx:id="appointmentTypeGroup"/>
-                        </fx:define>
-                        <RadioButton text="O_ffice Visit" fx:id="officeVisitRadio" selected="true"
-                                     toggleGroup="$appointmentTypeGroup">
+                        <Label text="_Last Name:" mnemonicParsing="true" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                        <TextField fx:id="patientLastNameField" promptText="Enter last name"
+                                   GridPane.rowIndex="1" GridPane.columnIndex="3">
                             <tooltip>
-                                <Tooltip text="Regular office visit with provider"/>
+                                <Tooltip text="Enter patient's legal last name"/>
                             </tooltip>
-                        </RadioButton>
-                        <RadioButton text="_Imaging" fx:id="imagingRadio"
-                                     toggleGroup="$appointmentTypeGroup">
-                            <tooltip>
-                                <Tooltip text="Imaging services (X-ray, Ultrasound, CT Scan)"/>
-                            </tooltip>
-                        </RadioButton>
-                    </HBox>
+                        </TextField>
 
-                    <!-- Office Visit Specific -->
-                    <VBox fx:id="officeVisitBox" spacing="5" GridPane.rowIndex="6" GridPane.columnIndex="0"
-                          GridPane.columnSpan="4">
-                        <Label text="_Provider:" />
-                        <ComboBox fx:id="providerNPIComboBox" promptText="Select provider">
+                        <Label text="_Birth Date:" mnemonicParsing="true" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <DatePicker fx:id="dobField" promptText="MM/DD/YYYY"
+                                    GridPane.rowIndex="2" GridPane.columnIndex="1">
                             <tooltip>
-                                <Tooltip text="Select provider by NPI number"/>
+                                <Tooltip text="Select patient's date of birth"/>
                             </tooltip>
-                        </ComboBox>
-                    </VBox>
+                        </DatePicker>
 
-                    <!-- Imaging Specific -->
-                    <VBox fx:id="imagingBox" spacing="5" GridPane.rowIndex="6" GridPane.columnIndex="0"
-                          GridPane.columnSpan="4" visible="false">
-                        <Label text="Imaging _Type:" />
-                        <ComboBox fx:id="imagingTypeComboBox" promptText="Select imaging type">
+                        <!-- Search Function -->
+                        <HBox spacing="10" GridPane.rowIndex="2" GridPane.columnIndex="2" GridPane.columnSpan="2">
+                            <TextField fx:id="searchField" promptText="Search patients..." HBox.hgrow="ALWAYS">
+                                <tooltip>
+                                    <Tooltip text="Search by patient name or ID"/>
+                                </tooltip>
+                            </TextField>
+                            <Button text="_Search" mnemonicParsing="true" onAction="#handlePatientSearch"/>
+                        </HBox>
+
+                        <!-- Appointment Details Section -->
+                        <Label text="Appointment Details" style="-fx-font-weight: bold; -fx-font-size: 14px;"
+                               GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
+
+                        <Label text="_Date:" mnemonicParsing="true" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                        <DatePicker fx:id="appointmentDateField" promptText="Select date"
+                                    GridPane.rowIndex="4" GridPane.columnIndex="1">
                             <tooltip>
-                                <Tooltip text="Select type of imaging service"/>
+                                <Tooltip text="Select appointment date"/>
+                            </tooltip>
+                        </DatePicker>
+
+                        <Label text="Time _Slot:" mnemonicParsing="true" GridPane.rowIndex="4" GridPane.columnIndex="2"/>
+                        <ComboBox fx:id="timeSlotComboBox" GridPane.rowIndex="4" GridPane.columnIndex="3">
+                            <tooltip>
+                                <Tooltip text="Select available time slot"/>
                             </tooltip>
                             <items>
                                 <FXCollections fx:factory="observableArrayList">
-                                    <String fx:value="X-Ray"/>
-                                    <String fx:value="Ultrasound"/>
-                                    <String fx:value="CT Scan"/>
+                                    <String fx:value="9:00 AM"/>
+                                    <String fx:value="9:30 AM"/>
+                                    <String fx:value="10:00 AM"/>
+                                    <String fx:value="10:30 AM"/>
+                                    <String fx:value="11:00 AM"/>
+                                    <String fx:value="11:30 AM"/>
+                                    <String fx:value="2:00 PM"/>
+                                    <String fx:value="2:30 PM"/>
+                                    <String fx:value="3:00 PM"/>
+                                    <String fx:value="3:30 PM"/>
+                                    <String fx:value="4:00 PM"/>
+                                    <String fx:value="4:30 PM"/>
                                 </FXCollections>
                             </items>
                         </ComboBox>
-                    </VBox>
 
-                    <!-- Action Buttons -->
-                    <HBox spacing="10" GridPane.rowIndex="7" GridPane.columnSpan="4" alignment="CENTER">
-                        <Button text="_Schedule" onAction="#handleScheduleAppointment"
-                                styleClass="primary-button"/>
-                        <Button text="_Cancel" onAction="#handleCancelAppointment"
-                                styleClass="danger-button"/>
-                        <Button text="R_eschedule" onAction="#handleRescheduleDialog"
-                                styleClass="secondary-button"/>
-                    </HBox>
+                        <!-- Appointment Type Selection -->
+                        <Label text="Appointment _Type:" mnemonicParsing="true" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                        <HBox spacing="10" GridPane.rowIndex="5" GridPane.columnIndex="1">
+                            <RadioButton text="O_ffice Visit" fx:id="officeVisitRadio" mnemonicParsing="true" selected="true">
+                                <toggleGroup>
+                                    <ToggleGroup fx:id="appointmentTypeGroup"/>
+                                </toggleGroup>
+                                <tooltip>
+                                    <Tooltip text="Regular office visit with provider"/>
+                                </tooltip>
+                            </RadioButton>
+                            <RadioButton text="_Imaging" fx:id="imagingRadio" mnemonicParsing="true">
+                                <toggleGroup>
+                                    <fx:reference source="appointmentTypeGroup"/>
+                                </toggleGroup>
+                                <tooltip>
+                                    <Tooltip text="Imaging services (X-ray, Ultrasound, CT Scan)"/>
+                                </tooltip>
+                            </RadioButton>
+                        </HBox>
 
-                    <!-- Appointment Table with Filtering -->
-                    <VBox spacing="5" GridPane.rowIndex="8" GridPane.columnSpan="4">
-                        <HBox spacing="10" alignment="CENTER_LEFT">
-                            <Label text="_Filter:"/>
-                            <TextField fx:id="filterField" promptText="Filter appointments..."
-                                       HBox.hgrow="ALWAYS"/>
-                            <ComboBox fx:id="filterTypeComboBox" promptText="Filter by type">
+                        <!-- Office Visit Specific -->
+                        <VBox fx:id="officeVisitBox" spacing="5" GridPane.rowIndex="6" GridPane.columnIndex="0"
+                              GridPane.columnSpan="4">
+                            <Label text="_Provider:" mnemonicParsing="true"/>
+                            <ComboBox fx:id="providerNPIComboBox" promptText="Select provider">
+                                <tooltip>
+                                    <Tooltip text="Select provider by NPI number"/>
+                                </tooltip>
+                            </ComboBox>
+                        </VBox>
+
+                        <!-- Imaging Specific -->
+                        <VBox fx:id="imagingBox" spacing="5" GridPane.rowIndex="6" GridPane.columnIndex="0"
+                              GridPane.columnSpan="4" visible="false" managed="false">
+                            <Label text="Imaging _Type:" mnemonicParsing="true"/>
+                            <ComboBox fx:id="imagingTypeComboBox" promptText="Select imaging type">
+                                <tooltip>
+                                    <Tooltip text="Select type of imaging service"/>
+                                </tooltip>
                                 <items>
                                     <FXCollections fx:factory="observableArrayList">
-                                        <String fx:value="All"/>
-                                        <String fx:value="Office Visit"/>
-                                        <String fx:value="Imaging"/>
+                                        <String fx:value="X-Ray"/>
+                                        <String fx:value="Ultrasound"/>
+                                        <String fx:value="CT Scan"/>
                                     </FXCollections>
                                 </items>
                             </ComboBox>
+                        </VBox>
+
+                        <!-- Action Buttons -->
+                        <HBox spacing="10" GridPane.rowIndex="7" GridPane.columnSpan="4" alignment="CENTER">
+                            <Button text="_Schedule" mnemonicParsing="true" onAction="#handleScheduleAppointment"
+                                    styleClass="primary-button"/>
+                            <Button text="_Cancel" mnemonicParsing="true" onAction="#handleCancelAppointment"
+                                    styleClass="danger-button"/>
+                            <Button text="R_eschedule" mnemonicParsing="true" onAction="#handleRescheduleDialog"
+                                    styleClass="secondary-button"/>
                         </HBox>
 
-                        <TableView fx:id="appointmentTable" VBox.vgrow="ALWAYS">
-                            <columns>
-                                <TableColumn fx:id="dateColumn" text="Date"/>
-                                <TableColumn fx:id="timeColumn" text="Time"/>
-                                <TableColumn fx:id="patientNameColumn" text="Patient Name"/>
-                                <TableColumn fx:id="dobColumn" text="DOB"/>
-                                <TableColumn fx:id="providerColumn" text="Provider/Service"/>
-                                <TableColumn fx:id="locationColumn" text="Location"/>
-                                <TableColumn fx:id="statusColumn" text="Status"/>
-                            </columns>
-                            <placeholder>
-                                <Label text="No appointments found"/>
-                            </placeholder>
-                        </TableView>
-                    </VBox>
+                        <!-- Appointment Table with Filtering -->
+                        <VBox spacing="5" GridPane.rowIndex="8" GridPane.columnSpan="4">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="_Filter:" mnemonicParsing="true"/>
+                                <TextField fx:id="filterField" promptText="Filter appointments..."
+                                           HBox.hgrow="ALWAYS"/>
+                                <ComboBox fx:id="filterTypeComboBox" promptText="Filter by type">
+                                    <items>
+                                        <FXCollections fx:factory="observableArrayList">
+                                            <String fx:value="All"/>
+                                            <String fx:value="Office Visit"/>
+                                            <String fx:value="Imaging"/>
+                                        </FXCollections>
+                                    </items>
+                                </ComboBox>
+                            </HBox>
 
-                    <!-- Status Messages -->
-                    <TextArea fx:id="statusMessageArea" prefHeight="100" editable="false"
-                              styleClass="status-area" wrapText="true"
-                              GridPane.rowIndex="9" GridPane.columnSpan="4"/>
-                </GridPane>
-            </VBox>
+                            <TableView fx:id="appointmentTable" VBox.vgrow="ALWAYS">
+                                <columns>
+                                    <TableColumn fx:id="dateColumn" text="Date"/>
+                                    <TableColumn fx:id="timeColumn" text="Time"/>
+                                    <TableColumn fx:id="patientNameColumn" text="Patient Name"/>
+                                    <TableColumn fx:id="dobColumn" text="DOB"/>
+                                    <TableColumn fx:id="providerColumn" text="Provider/Service"/>
+                                    <TableColumn fx:id="locationColumn" text="Location"/>
+                                    <TableColumn fx:id="statusColumn" text="Status"/>
+                                </columns>
+                                <placeholder>
+                                    <Label text="No appointments found"/>
+                                </placeholder>
+                            </TableView>
+                        </VBox>
+
+                        <!-- Status Messages -->
+                        <TextArea fx:id="statusMessageArea" prefHeight="100" editable="false"
+                                  styleClass="status-area" wrapText="true"
+                                  GridPane.rowIndex="9" GridPane.columnSpan="4"/>
+                    </GridPane>
+                </VBox>
+            </content>
         </Tab>
 
         <!-- Reports Tab -->
-        <Tab text="_Reports">
-            <VBox spacing="10" padding="10">
-                <HBox spacing="10" alignment="CENTER">
-                    <DatePicker fx:id="reportStartDate" promptText="Start Date"/>
-                    <DatePicker fx:id="reportEndDate" promptText="End Date"/>
-                    <Button text="_Office Appointments" onAction="#handleViewOfficeAppointments"/>
-                    <Button text="_Imaging Appointments" onAction="#handleViewImagingAppointments"/>
-                    <Button text="_Provider Credits" onAction="#handleViewProviderCredits"/>
-                    <Button text="_Export Report" onAction="#handleExportReport"/>
-                </HBox>
+        <Tab text="_Reports" closable="false">
+            <content>
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                    <HBox spacing="10" alignment="CENTER">
+                        <DatePicker fx:id="reportStartDate" promptText="Start Date"/>
+                        <DatePicker fx:id="reportEndDate" promptText="End Date"/>
+                        <Button text="_Office Appointments" mnemonicParsing="true" onAction="#handleViewOfficeAppointments"/>
+                        <Button text="_Imaging Appointments" mnemonicParsing="true" onAction="#handleViewImagingAppointments"/>
+                        <Button text="_Provider Credits" mnemonicParsing="true" onAction="#handleViewProviderCredits"/>
+                        <Button text="_Export Report" mnemonicParsing="true" onAction="#handleExportReport"/>
+                    </HBox>
 
-                <TableView fx:id="reportsTable" VBox.vgrow="ALWAYS">
-                    <placeholder>
-                        <Label text="Select report type and date range"/>
-                    </placeholder>
-                </TableView>
-            </VBox>
+                    <TableView fx:id="reportsTable" VBox.vgrow="ALWAYS">
+                        <placeholder>
+                            <Label text="Select report type and date range"/>
+                        </placeholder>
+                    </TableView>
+                </VBox>
+            </content>
         </Tab>
 
         <!-- Providers Tab -->
-        <Tab text="_Providers">
-            <VBox spacing="10" padding="10">
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <TextField fx:id="providerSearchField" promptText="Search providers..."
-                               HBox.hgrow="ALWAYS"/>
-                    <ComboBox fx:id="providerFilterComboBox" promptText="Filter by specialty"/>
-                    <Button text="_Add Provider" onAction="#handleAddProvider"/>
-                </HBox>
+        <Tab text="_Providers" closable="false">
+            <content>
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <TextField fx:id="providerSearchField" promptText="Search providers..."
+                                   HBox.hgrow="ALWAYS"/>
+                        <ComboBox fx:id="providerFilterComboBox" promptText="Filter by specialty"/>
+                        <Button text="_Add Provider" mnemonicParsing="true" onAction="#handleAddProvider"/>
+                    </HBox>
 
-                <TableView fx:id="providerTable" VBox.vgrow="ALWAYS">
-                    <columns>
-                        <TableColumn fx:id="providerNameColumn" text="Name"/>
-                        <TableColumn fx:id="providerTypeColumn" text="Type"/>
-                        <TableColumn fx:id="providerSpecialtyColumn" text="Specialty"/>
-                        <TableColumn fx:id="providerNPIColumn" text="NPI"/>
-                        <TableColumn fx:id="providerLocationColumn" text="Location"/>
-                        <TableColumn fx:id="providerStatusColumn" text="Status"/>
-                    </columns>
-                    <placeholder>
-                        <Label text="No providers found"/>
-                    </placeholder>
-                </TableView>
+                    <TableView fx:id="providerTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="providerNameColumn" text="Name"/>
+                            <TableColumn fx:id="providerTypeColumn" text="Type"/>
+                            <TableColumn fx:id="providerSpecialtyColumn" text="Specialty"/>
+                            <TableColumn fx:id="providerNPIColumn" text="NPI"/>
+                            <TableColumn fx:id="providerLocationColumn" text="Location"/>
+                            <TableColumn fx:id="providerStatusColumn" text="Status"/>
+                        </columns>
+                        <placeholder>
+                            <Label text="No providers found"/>
+                        </placeholder>
+                    </TableView>
 
-                <TextArea fx:id="providerStatusArea" prefHeight="100" editable="false"
-                          styleClass="status-area" wrapText="true"/>
-            </VBox>
+                    <TextArea fx:id="providerStatusArea" prefHeight="100" editable="false"
+                              styleClass="status-area" wrapText="true"/>
+                </VBox>
+            </content>
         </Tab>
     </tabs>
 </TabPane>
