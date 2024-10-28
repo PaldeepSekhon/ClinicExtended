@@ -36,6 +36,9 @@ public class ClinicManagerController{
     private util.List<Appointment> appointments; // List to hold all appointments
     private util.List<Provider> providers; // Single list for all providers
     private CircularLinkedList technicianList;
+
+    @FXML private Button loadProviderButton;
+
     // Patient Information Fields
     @FXML private TextField patientFirstNameField;
     @FXML private TextField patientLastNameField;
@@ -74,6 +77,7 @@ public class ClinicManagerController{
     @FXML private TextArea statusMessageArea;
     @FXML private TextArea providerStatusArea;
 
+
     public void initialize() {
         timeSlotComboBox.setItems(FXCollections.observableArrayList(
                 "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
@@ -96,6 +100,16 @@ public class ClinicManagerController{
         this.technicianList = new CircularLinkedList();
 
     }
+
+    @FXML
+    private void handleLoadProviderButton(ActionEvent event) {
+        // Code to load provider information
+        System.out.println("Loading provider information...");
+
+        // For example, you could fetch provider data from a database or file
+        // Here, add your logic to populate the Appointment Management tab with provider details
+    }
+
 
 
 

@@ -142,12 +142,14 @@
 
                         <!-- Action Buttons -->
                         <HBox spacing="10" GridPane.rowIndex="7" GridPane.columnSpan="4" alignment="CENTER">
-                            <Button text="_Schedule" mnemonicParsing="true" onAction="#handleScheduleAppointment"
+                            <Button text="_Schedule" onAction="#handleScheduleAppointment"
                                     styleClass="primary-button"/>
-                            <Button text="_Cancel" mnemonicParsing="true" onAction="#handleCancelAppointment"
+                            <Button text="_Cancel" onAction="#handleCancelAppointment"
                                     styleClass="danger-button"/>
-                            <Button text="R_eschedule" mnemonicParsing="true" onAction="#handleRescheduleDialog"
+                            <Button text="R_eschedule" onAction="#handleRescheduleDialog"
                                     styleClass="secondary-button"/>
+                            <Button text="Load Provider" onAction="#handleLoadProviderButton" />
+
                         </HBox>
 
                         <!-- Appointment Table with Filtering -->
@@ -187,6 +189,7 @@
                         <TextArea fx:id="statusMessageArea" prefHeight="100" editable="false"
                                   styleClass="status-area" wrapText="true"
                                   GridPane.rowIndex="9" GridPane.columnSpan="4"/>
+
                     </GridPane>
                 </VBox>
             </content>
