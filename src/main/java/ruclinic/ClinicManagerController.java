@@ -2,6 +2,7 @@ package ruclinic;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import util.*;
 import javafx.fxml.FXML;
@@ -22,6 +23,7 @@ import util.Date;
 import util.Timeslot;
 
 import java.io.FileNotFoundException;
+import java.sql.Time;
 import java.util.Scanner;
 
 import java.time.LocalDate;
@@ -55,6 +57,7 @@ public class ClinicManagerController{
     // Office Visit and Imaging Sections
     @FXML private VBox officeVisitBox;
     @FXML private ComboBox<String> providerNPIComboBox;
+
     @FXML private VBox imagingBox;
     @FXML private ComboBox<String> imagingTypeComboBox;
 
@@ -77,12 +80,22 @@ public class ClinicManagerController{
     @FXML private TextArea statusMessageArea;
     @FXML private TextArea providerStatusArea;
 
+    @FXML private HBox loadProviders;
+    @FXML private HBox cancelAppointment;
+    @FXML private HBox reschedule;
+    @FXML private HBox scheduleAppointment;
+
+    private String selectedProviderNPI;
+    private String selectedTimeSlot;
+    ObservableList<String> timeSlots = FXCollections.observableArrayList(
+            "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+            "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM"
+    );
 
     public void initialize() {
-        timeSlotComboBox.setItems(FXCollections.observableArrayList(
-                "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
-                "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM"
-        ));
+
+        timeSlotComboBox.setItems(FXCollections.observableArrayList(timeSlots));
+
         imagingTypeComboBox.setItems(FXCollections.observableArrayList("X-Ray", "Ultrasound", "CT Scan"));
         filterTypeComboBox.setItems(FXCollections.observableArrayList("All", "Office Visit", "Imaging"));
 
@@ -104,32 +117,10 @@ public class ClinicManagerController{
     @FXML
     private void handleLoadProviderButton(ActionEvent event) {
         // Code to load provider information
-        System.out.println("Loading provider information...");
+       // System.out.println("Loading provider information...");
 
         // For example, you could fetch provider data from a database or file
         // Here, add your logic to populate the Appointment Management tab with provider details
-    }
-
-
-
-
-    // Show Office Visit Fields
-    private void showOfficeVisitFields() {
-        officeVisitBox.setVisible(true);
-        officeVisitBox.setManaged(true);
-        imagingBox.setVisible(false);
-        imagingBox.setManaged(false);
-    }
-
-    private void showImagingFields() {
-        imagingBox.setVisible(true);
-        imagingBox.setManaged(true);
-        officeVisitBox.setVisible(false);
-        officeVisitBox.setManaged(false);
-    }
-
-    @FXML
-    void importFile(ActionEvent event)  {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Open Source File for the Import");
         chooser.getExtensionFilters().addAll(new ExtensionFilter("Text Files", "*.txt"),
@@ -199,7 +190,7 @@ public class ClinicManagerController{
         }
 
         //print
-
+        ObservableList<String> providerOptions = FXCollections.observableArrayList();
         Sort.provider(providers); // Sort by provider profile
 
         for (Provider provider : providers) {
@@ -224,9 +215,35 @@ public class ClinicManagerController{
             }
 
             statusMessageArea.appendText(providerDetails);
+            providerOptions.add(providerDetails);
 
         }
         statusMessageArea.appendText("\n");
+        providerNPIComboBox.setItems(providerOptions);
+
+    }
+
+
+
+
+    // Show Office Visit Fields
+    private void showOfficeVisitFields() {
+        officeVisitBox.setVisible(true);
+        officeVisitBox.setManaged(true);
+        imagingBox.setVisible(false);
+        imagingBox.setManaged(false);
+    }
+
+    private void showImagingFields() {
+        imagingBox.setVisible(true);
+        imagingBox.setManaged(true);
+        officeVisitBox.setVisible(false);
+        officeVisitBox.setManaged(false);
+    }
+
+    @FXML
+    void importFile(ActionEvent event)  {
+
 
     }
 
@@ -267,6 +284,14 @@ public class ClinicManagerController{
             statusMessageArea.appendText("Appointment date: " + appointmentDate + " is not within six months.");
             return;
         }
+        timeSlotComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                selectedTimeSlot = String.valueOf(timeSlots.indexOf(newValue) + 1); // Get the position as 1-based index
+
+            }
+        });
+
+        Timeslot timeslot = Timeslot.fromString(selectedTimeSlot);
 
 
         Profile profile = new Profile(firstName, lastName, dob);
@@ -275,12 +300,70 @@ public class ClinicManagerController{
         for (Appointment appt : appointments) {
             if (appt.getPatient().getProfile().equals(profile) &&
                     appt.getDate().equals(appointmentDate) &&
-                    appt.getTimeslot().toString().equals(timeSlot)) {
+                    appt.getTimeslot().toString().equals(selectedTimeSlot)) {
                 System.out.println(firstName + " " + lastName + " " + dob.toString()
                         + " has an existing appointment at the same time slot.");
                 return;
             }
         }
+
+
+        providerNPIComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null && newValue.contains("#")) { // Ensure there is an NPI in the format
+                // Regex to capture the NPI number after '#'
+                selectedProviderNPI = newValue.replaceAll(".*#(\\d+).*", "$1"); // Captures the NPI as a group
+
+
+                // You can then use `npi` as needed, e.g., store it, display it, etc.
+            }
+        });
+
+        Provider provider = findProviderByNPI(selectedProviderNPI);
+        if (provider == null) {
+            statusMessageArea.appendText(selectedProviderNPI + " - provider doesn't exist.");
+            return;
+        }
+
+
+
+        if (!isProviderAvailable(provider, appointmentDate, timeslot)) {
+            Doctor doctor = (Doctor) provider;
+            statusMessageArea.appendText(String.format("[%s %s %s, %s, %s %s][%s, #%s] is not available at slot %s.",
+                    doctor.getProfile().getFirstName(),
+                    doctor.getProfile().getLastName(),
+                    doctor.getProfile().getDob(),
+                    doctor.getLocation().getCity(),
+                    doctor.getLocation().getCounty(),
+                    doctor.getLocation().getZip(),
+                    doctor.getSpecialty().getNameOnly(),
+                    doctor.getNpi(),
+                    timeslot.toString()));
+            return;
+        }
+
+        Appointment newAppointment = new Appointment(appointmentDate, timeslot, patient, provider);
+        appointments.add(newAppointment);
+
+        Doctor doctor = (Doctor) provider;
+        statusMessageArea.appendText(String.format("%s %s %s %s %s [%s %s %s, %s, %s %s][%s, #%s] booked.%n",
+                appointmentDate,
+                timeslot,
+                firstName,
+                lastName,
+                dob.toString(),
+                doctor.getProfile().getFirstName(),
+                doctor.getProfile().getLastName(),
+                doctor.getProfile().getDob(),
+                doctor.getLocation().getCity(),
+                doctor.getLocation().getCounty(),
+                doctor.getLocation().getZip(),
+                doctor.getSpecialty().getNameOnly(),
+                doctor.getNpi()));
+
+
+
+
+
 
 
 
@@ -342,6 +425,29 @@ public class ClinicManagerController{
     @FXML
     private void handleAddProvider(ActionEvent event) {
 
+    }
+
+    private Provider findProviderByNPI(String npi) {
+        for (Provider provider : providers) {
+            if (provider instanceof Doctor) {
+                Doctor doctor = (Doctor) provider;
+                if (doctor.getNpi().equals(npi)) {
+                    return doctor;
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean isProviderAvailable(Provider provider, Date date, Timeslot timeslot) {
+        for (Appointment appointment : appointments) {
+            if (appointment.getProvider().equals(provider) &&
+                    appointment.getDate().equals(date) &&
+                    appointment.getTimeslot().equals(timeslot)) {
+                return false; // Provider has an existing appointment at that date and timeslot
+            }
+        }
+        return true; // Provider is available
     }
 
 

@@ -146,7 +146,7 @@
                                     styleClass="primary-button"/>
                             <Button text="_Cancel" onAction="#handleCancelAppointment"
                                     styleClass="danger-button"/>
-                            <Button text="R_eschedule" onAction="#handleRescheduleDialog"
+                            <Button text="Reschedule" onAction="#handleRescheduleDialog"
                                     styleClass="secondary-button"/>
                             <Button text="Load Provider" onAction="#handleLoadProviderButton" />
 
