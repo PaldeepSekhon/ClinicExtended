@@ -35,6 +35,24 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ClinicManagerController{
 
+    public TableColumn list_appointmentDateColumn;
+    public TableColumn list_providerNameColumn;
+    public TableColumn list_appointmentTimeColumn;
+    public TableColumn list_countyColumn;
+    public TableView appointmentListTable;
+    public ListView sortOrderListView;
+    public ComboBox sortOptionsComboBox;
+    public ComboBox appointmentTypeComboBox;
+    public TableColumn zipColumn;
+    public TableColumn countyColumn;
+    public TableColumn cityColumn;
+    public TableView clinicLocationsTable;
+    public ComboBox newTimeSlotComboBox;
+    public TextField rescheduleFirstNameField;
+    public TextField rescheduleLastNameField;
+    public DatePicker rescheduleDOBField;
+    public ComboBox oldTimeSlotComboBox;
+    public DatePicker originalDateField;
     private util.List<Appointment> appointments; // List to hold all appointments
     private util.List<Provider> providers; // Single list for all providers
     private CircularLinkedList technicianList;
@@ -61,10 +79,6 @@ public class ClinicManagerController{
     @FXML private VBox imagingBox;
     @FXML private ComboBox<String> imagingTypeComboBox;
 
-    // Filter and Appointment Table
-    @FXML private TextField filterField;
-    @FXML private ComboBox<String> filterTypeComboBox;
-    @FXML private TableView<?> appointmentTable;
 
     // Reports Fields
     @FXML private DatePicker reportStartDate;
@@ -97,7 +111,6 @@ public class ClinicManagerController{
         timeSlotComboBox.setItems(FXCollections.observableArrayList(timeSlots));
 
         imagingTypeComboBox.setItems(FXCollections.observableArrayList("X-Ray", "Ultrasound", "CT Scan"));
-        filterTypeComboBox.setItems(FXCollections.observableArrayList("All", "Office Visit", "Imaging"));
 
         // Toggle visibility of office visit and imaging sections based on selection
         appointmentTypeGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
@@ -398,7 +411,7 @@ public class ClinicManagerController{
     }
 
     @FXML
-    private void handleRescheduleDialog(ActionEvent event) {
+    private void handleRescheduleAppointment(ActionEvent event) {
 
     }
 
@@ -451,9 +464,11 @@ public class ClinicManagerController{
     }
 
 
+    public void handleAddSortOrder(ActionEvent actionEvent) {
+    }
 
-
-
+    public void handleClearSortOrder(ActionEvent actionEvent) {
+    }
 }
 
 
