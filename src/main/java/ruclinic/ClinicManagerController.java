@@ -111,7 +111,7 @@ public class ClinicManagerController{
 
         timeSlotComboBox.setItems(FXCollections.observableArrayList(timeSlots));
 
-        imagingTypeComboBox.setItems(FXCollections.observableArrayList("X-Ray", "Ultrasound", "CT Scan"));
+        imagingTypeComboBox.setItems(FXCollections.observableArrayList("XRAY", "ULTRASOUND", "CATSCAN"));
 
         // Toggle visibility of office visit and imaging sections based on selection
         appointmentTypeGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
@@ -305,7 +305,7 @@ public class ClinicManagerController{
             }
         });
 
-        Timeslot timeslot = Timeslot.fromString(selectedTimeSlot);
+        Timeslot timeslotObj = Timeslot.fromString(selectedTimeSlot);
 
 
         Profile profile = new Profile(firstName, lastName, dob);
@@ -321,30 +321,52 @@ public class ClinicManagerController{
             }
         }
 
+        if(officeVisitRadio.isSelected()) {
+            providerNPIComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue != null && newValue.contains("#")) { // Ensure there is an NPI in the format
+                    // Regex to capture the NPI number after '#'
+                    selectedProviderNPI = newValue.replaceAll(".*#(\\d{2}).*", "$1"); // Captures the NPI as a group
 
-        providerNPIComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null && newValue.contains("#")) { // Ensure there is an NPI in the format
-                // Regex to capture the NPI number after '#'
-                selectedProviderNPI = newValue.replaceAll(".*#(\\d{2}).*", "$1"); // Captures the NPI as a group
 
+                    // You can then use `npi` as needed, e.g., store it, display it, etc.
+                }
+            });
 
-                // You can then use `npi` as needed, e.g., store it, display it, etc.
+            statusMessageArea.appendText(selectedProviderNPI);
+
+            Provider provider = findProviderByNPI(selectedProviderNPI);
+
+            if (provider == null) {
+                statusMessageArea.appendText(selectedProviderNPI + " - provider doesn't exist.");
+                return;
             }
-        });
-
-        statusMessageArea.appendText(selectedProviderNPI);
-
-        Provider provider = findProviderByNPI(selectedProviderNPI);
-
-        if (provider == null) {
-            statusMessageArea.appendText(selectedProviderNPI + " - provider doesn't exist.");
-            return;
-        }
 
 
-        if (!isProviderAvailable(provider, appointmentDate, timeslot)) {
+            if (!isProviderAvailable(provider, appointmentDate, timeslotObj)) {
+                Doctor doctor = (Doctor) provider;
+                statusMessageArea.appendText(String.format("[%s %s %s, %s, %s %s][%s, #%s] is not available at slot %s.",
+                        doctor.getProfile().getFirstName(),
+                        doctor.getProfile().getLastName(),
+                        doctor.getProfile().getDob(),
+                        doctor.getLocation().getCity(),
+                        doctor.getLocation().getCounty(),
+                        doctor.getLocation().getZip(),
+                        doctor.getSpecialty().getNameOnly(),
+                        doctor.getNpi(),
+                        timeslotObj.toString()));
+                return;
+            }
+
+            Appointment newAppointment = new Appointment(appointmentDate, timeslotObj, patient, provider);
+            appointments.add(newAppointment);
+
             Doctor doctor = (Doctor) provider;
-            statusMessageArea.appendText(String.format("[%s %s %s, %s, %s %s][%s, #%s] is not available at slot %s.",
+            statusMessageArea.appendText(String.format("%s %s %s %s %s [%s %s %s, %s, %s %s][%s, #%s] booked.%n",
+                    appointmentDate,
+                    timeslotObj,
+                    firstName,
+                    lastName,
+                    dob.toString(),
                     doctor.getProfile().getFirstName(),
                     doctor.getProfile().getLastName(),
                     doctor.getProfile().getDob(),
@@ -352,29 +374,50 @@ public class ClinicManagerController{
                     doctor.getLocation().getCounty(),
                     doctor.getLocation().getZip(),
                     doctor.getSpecialty().getNameOnly(),
-                    doctor.getNpi(),
-                    timeslot.toString()));
-            return;
+                    doctor.getNpi()));
+
+
+            statusMessageArea.appendText("Scheduling appointment for " + firstName + " " + lastName +
+                    " on " + appointmentDate + " at " + timeSlot + " with " + provider.getFirstName() + "\n");
         }
 
-        Appointment newAppointment = new Appointment(appointmentDate, timeslot, patient, provider);
-        appointments.add(newAppointment);
+        if (imagingRadio.isSelected()){
 
-        Doctor doctor = (Doctor) provider;
-        statusMessageArea.appendText(String.format("%s %s %s %s %s [%s %s %s, %s, %s %s][%s, #%s] booked.%n",
-                appointmentDate,
-                timeslot,
-                firstName,
-                lastName,
-                dob.toString(),
-                doctor.getProfile().getFirstName(),
-                doctor.getProfile().getLastName(),
-                doctor.getProfile().getDob(),
-                doctor.getLocation().getCity(),
-                doctor.getLocation().getCounty(),
-                doctor.getLocation().getZip(),
-                doctor.getSpecialty().getNameOnly(),
-                doctor.getNpi()));
+            String imagingService = imagingTypeComboBox.getSelectionModel().getSelectedItem();
+            Technician technician = assignTechnicianForService(imagingService, appointmentDate, timeslotObj);
+            if (technician == null) {
+                System.out.printf("Cannot find an available technician at all locations for %s at slot %s.%n",
+                        imagingService.toUpperCase(),
+                        timeSlot);
+                return;
+            }
+
+
+            Radiology room = Radiology.valueOf(imagingService.toUpperCase());
+            Imaging imagingAppointment = new Imaging(appointmentDate, timeslotObj, patient, technician, room);
+            appointments.add(imagingAppointment);
+
+            statusMessageArea.appendText(String.format("%s %s %s %s %s [%s %s %s, %s, %s %s][rate: $%.2f][%s] booked.%n",
+                    appointmentDate,
+                    timeslotObj,
+                    firstName,
+                    lastName,
+                    dob.toString(),
+                    technician.getProfile().getFirstName(),
+                    technician.getProfile().getLastName(),
+                    technician.getProfile().getDob().toString(),
+                    technician.getLocation().getCity(),
+                    technician.getLocation().getCounty(),
+                    technician.getLocation().getZip(),
+                    (double) technician.rate(),
+                    imagingService.toUpperCase()));
+
+        }
+
+
+
+
+
 
 
 
@@ -394,8 +437,7 @@ public class ClinicManagerController{
 
 
 
-        statusMessageArea.appendText("Scheduling appointment for " + firstName + " " + lastName +
-                " on " + appointmentDate + " at " + timeSlot + " with " + provider.getFirstName() + "\n");
+
         // Implement scheduling logic here
 
 
@@ -471,6 +513,79 @@ public class ClinicManagerController{
     }
 
     public void handleClearSortOrder(ActionEvent actionEvent) {
+    }
+
+    private Technician lastAssignedTechnician = null;
+
+    private Technician assignTechnicianForService(String imagingService, Date appointmentDate, Timeslot timeslotObj) {
+        if (technicianList.isEmpty()) {
+            return null;
+        }
+
+        // Get starting technician based on last assignment
+        Technician startingTech;
+        if (lastAssignedTechnician == null) {
+            startingTech = technicianList.getFirstTechnician();
+        } else {
+            startingTech = technicianList.getNextTechnician(); // Start from the technician after the last assigned one
+        }
+
+        Technician currentTech = startingTech;
+
+        // Loop through all technicians once
+        do {
+
+            // Check if technician is available and their location's room is available
+            if (isTechnicianAvailable(currentTech, appointmentDate, timeslotObj) &&
+                    isRoomAvailableAtLocation(currentTech, imagingService, appointmentDate, timeslotObj)) {
+
+                // Book both technician and room
+
+                // Update last assigned technician for next rotation
+                lastAssignedTechnician = currentTech;
+                return currentTech;
+            }
+
+            currentTech = technicianList.getNextTechnician();
+        } while (currentTech != startingTech);
+
+        // Update the last assigned technician even when no one is available
+        // This ensures next search starts from the next person in rotation
+        technicianList.getFirstTechnician();
+
+        return null;
+    }
+
+    private boolean isTechnicianAvailable(Technician technician, Date appointmentDate, Timeslot timeslot) {
+        // Check if technician is already booked at this time by examining the
+        // appointments list
+        for (Appointment appointment : appointments) {
+            if (appointment.getTechnician() != null && appointment.getTechnician().equals(technician) &&
+                    appointment.getDate().equals(appointmentDate) &&
+                    appointment.getTimeslot().equals(timeslot)) {
+                return false; // Technician is not available
+            }
+        }
+        return true; // Technician is available
+    }
+
+    private boolean isRoomAvailableAtLocation(Technician technician, String serviceType,
+                                              Date appointmentDate, Timeslot slot) {
+        String location = technician.getLocation().getCity();
+
+        // Check existing appointments for room conflict at this location
+        for (Appointment appointment : appointments) {
+            if (appointment instanceof Imaging && appointment.getTechnician().getLocation().getCity().equals(location)
+                    &&
+                    appointment.getServiceType().equalsIgnoreCase(serviceType) &&
+                    appointment.getDate().equals(appointmentDate) &&
+                    appointment.getTimeslot().equals(slot)) {
+
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 
