@@ -101,6 +101,7 @@ public class ClinicManagerController{
 
     private String selectedProviderNPI;
     private String selectedTimeSlot;
+
     ObservableList<String> timeSlots = FXCollections.observableArrayList(
             "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
             "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM"
@@ -324,19 +325,21 @@ public class ClinicManagerController{
         providerNPIComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && newValue.contains("#")) { // Ensure there is an NPI in the format
                 // Regex to capture the NPI number after '#'
-                selectedProviderNPI = newValue.replaceAll(".*#(\\d+).*", "$1"); // Captures the NPI as a group
+                selectedProviderNPI = newValue.replaceAll(".*#(\\d{2}).*", "$1"); // Captures the NPI as a group
 
 
                 // You can then use `npi` as needed, e.g., store it, display it, etc.
             }
         });
 
+        statusMessageArea.appendText(selectedProviderNPI);
+
         Provider provider = findProviderByNPI(selectedProviderNPI);
+
         if (provider == null) {
             statusMessageArea.appendText(selectedProviderNPI + " - provider doesn't exist.");
             return;
         }
-
 
 
         if (!isProviderAvailable(provider, appointmentDate, timeslot)) {
@@ -392,7 +395,7 @@ public class ClinicManagerController{
 
 
         statusMessageArea.appendText("Scheduling appointment for " + firstName + " " + lastName +
-                " on " + appointmentDate + " at " + timeSlot + "\n");
+                " on " + appointmentDate + " at " + timeSlot + " with " + provider.getFirstName() + "\n");
         // Implement scheduling logic here
 
 
