@@ -21,6 +21,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.FileChooser;
 import util.Date;
 import util.Timeslot;
+import java.util.Map;
+import java.util.HashMap;
 
 import java.io.FileNotFoundException;
 import java.sql.Time;
@@ -120,6 +122,10 @@ public class ClinicManagerController{
     private String selectedOldTimeSlot;
     private String selectedNewTimeSlot;
 
+    @FXML private ComboBox<String> billingSegmentComboBox;
+
+    private String selectedBillingSegment;
+
 
 
     ObservableList<String> timeSlots = FXCollections.observableArrayList(
@@ -181,6 +187,12 @@ public class ClinicManagerController{
         appointmentTypeComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
                 selectedAppointmentType = newValue;
+            }
+        });
+
+        billingSegmentComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                selectedBillingSegment = newValue;
             }
         });
 
@@ -601,6 +613,18 @@ public class ClinicManagerController{
 
     }
 
+    @FXML
+    private void onBillingDisplay(ActionEvent event) {
+        if(selectedBillingSegment.equals("Patient"))
+        {
+            displayBillingStatements();
+        }
+        if (selectedBillingSegment.equals("Provider"))
+        {
+            displayCredits();
+        }
+    }
+
     private Provider findProviderByNPI(String npi) {
         for (Provider provider : providers) {
             if (provider instanceof Doctor) {
@@ -894,6 +918,85 @@ public class ClinicManagerController{
                         roomType)); // Imaging room type
             }
         }
+    }
+
+    private void displayBillingStatements() {
+
+        tab_textbox.appendText("** Billing Statements ordered by Patients **\n");
+
+        // Create a map to accumulate charges by patient (using a unique key based on name and dob)
+        Map<String, Double> billingMap = new HashMap<>();
+
+        // Iterate over all appointments
+        for (Appointment appointment : appointments) {
+            Person patient = appointment.getPatient();
+            String patientName = patient.getProfile().getFirstName() + " " + patient.getProfile().getLastName();
+            String dob = patient.getProfile().getDob().toString(); // Assuming dob is in a String format
+
+            // Use a unique key to identify each patient by name and dob
+            String uniquePatientKey = patientName + " " + dob;
+
+            // Determine the charge based on the provider (doctor or technician)
+            Provider provider = appointment.getProvider();
+            double charge = 0;
+
+            if (provider instanceof Doctor) {
+                Doctor doctor = (Doctor) provider;
+                charge = doctor.rate();
+            } else if (provider instanceof Technician) {
+                Technician technician = (Technician) provider;
+                charge = technician.getRatePerVisit();
+            }
+
+            // Accumulate the charge for the patient
+            billingMap.put(uniquePatientKey, billingMap.getOrDefault(uniquePatientKey, 0.0) + charge);
+        }
+
+        // Display the total charges for each patient
+        int index = 1;
+        for (Map.Entry<String, Double> entry : billingMap.entrySet()) {
+            String patientIdentifier = entry.getKey();
+            double totalCharge = entry.getValue();
+            tab_textbox.appendText(String.format("(%d) %s [total due: $%.2f]%n", index++, patientIdentifier, totalCharge));
+        }
+
+        tab_textbox.appendText("** end of list **\n");
+
+        // Clear appointments list if needed
+        appointments = null;
+    }
+
+    private void displayCredits() {
+
+       tab_textbox.appendText(("** Credit amount ordered by provider. **\n"));
+
+        // Sort providers by profile
+        Sort.provider(providers);
+
+        for (int i = 0; i < providers.size(); i++) {
+            Provider provider = providers.get(i);
+            String creditDetails;
+
+            // Determine if the provider is a Doctor or Technician
+            if (provider instanceof Doctor) {
+                creditDetails = String.format("%s [%s] [credit amount: $%.2f]",
+                        provider.getProfile().getFirstName() + " " + provider.getProfile().getLastName(),
+                        provider.getProfile().getDob(),
+                        (double) provider.rate()); // Cast to double for formatting
+            } else if (provider instanceof Technician) {
+                creditDetails = String.format("%s [%s] [credit amount: $%.2f]",
+                        provider.getProfile().getFirstName() + " " + provider.getProfile().getLastName(),
+                        provider.getProfile().getDob(),
+                        (double) provider.rate()); // Cast to double for formatting
+            } else {
+                continue; // Skip any other type of provider not handled
+            }
+
+            // Print the formatted output with the index
+            tab_textbox.appendText(String.format("(%d) %s%n", (i + 1), creditDetails));
+        }
+
+        tab_textbox.appendText("** end of list **\n");
     }
 
 

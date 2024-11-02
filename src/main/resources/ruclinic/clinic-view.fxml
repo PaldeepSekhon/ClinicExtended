@@ -314,7 +314,6 @@
                             </items>
                         </ComboBox>
                         <Button mnemonicParsing="false" onAction="#handleDisplaySorting" text="Display Sorting" />
-                        <Button onAction="#handleClearSortOrder" text="Clear Sort Order" />
                     </HBox>
 
                     <!-- Billing Segment Options -->
@@ -328,7 +327,7 @@
                                 </FXCollections>
                             </items>
                         </ComboBox>
-                  <Button mnemonicParsing="false" text="Display Billing" />
+                  <Button mnemonicParsing="false" onAction="#onBillingDisplay" text="Display Billing" />
                     </HBox>
                <TextArea fx:id="tab_textbox" prefHeight="332.0" prefWidth="526.0" />
 
