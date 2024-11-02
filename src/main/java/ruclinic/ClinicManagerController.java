@@ -35,6 +35,16 @@ import java.io.File;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 
+/**
+ * The ClinicManagerController class handles the user interactions for scheduling,
+ * canceling, and rescheduling appointments within the clinic. It manages the
+ * GUI elements and invokes necessary methods to validate and process appointment
+ * data. This controller also manages the available providers, time slots, and
+ * imaging services, coordinating them for user requests.
+ *
+ * @author Paldeep Sekhon
+ * @author Aditya Ponni
+ */
 
 public class ClinicManagerController{
 
@@ -876,6 +886,10 @@ public class ClinicManagerController{
     }
 
     private void displayImagingAppointment(Imaging imagingAppointment) {
+        if(appointments == null)
+        {
+            tab_textbox.appendText("Appointment Schedule is Empty");
+        }
         String appointmentDate = imagingAppointment.getDate().toString();
         String timeslot = imagingAppointment.getTimeslot().toString();
         Person patient = imagingAppointment.getPatient();
@@ -902,6 +916,10 @@ public class ClinicManagerController{
     }
 
     private void displayRegularAppointment(Appointment appointment) {
+        if(appointments == null)
+        {
+            tab_textbox.appendText("Appointment Schedule is Empty");
+        }
         Person patient = appointment.getPatient();
         Provider provider = appointment.getProvider();
         Doctor doctor = (Doctor) provider; // Cast the provider to Doctor
@@ -924,6 +942,11 @@ public class ClinicManagerController{
 
 
     private void listImagingAppointments() {
+
+        if(appointments == null)
+        {
+            tab_textbox.appendText("Appointment Schedule is Empty");
+        }
 
         for (Appointment appointment : appointments) {
             if (appointment instanceof Imaging) { // Only display imaging appointments
@@ -957,6 +980,11 @@ public class ClinicManagerController{
     }
 
     private void displayBillingStatements() {
+
+        if(appointments == null)
+        {
+            tab_textbox.appendText("Appointment Schedule is Empty");
+        }
 
         tab_textbox.appendText("** Billing Statements ordered by Patients **\n");
 
@@ -996,7 +1024,7 @@ public class ClinicManagerController{
             tab_textbox.appendText(String.format("(%d) %s [total due: $%.2f]%n", index++, patientIdentifier, totalCharge));
         }
 
-        tab_textbox.appendText("** end of list **\n");
+        tab_textbox.appendText("** end of list **\n ** appointment schedule cleared ** \n");
 
         // Clear appointments list if needed
         appointments = null;
@@ -1033,6 +1061,8 @@ public class ClinicManagerController{
         }
 
         tab_textbox.appendText("** end of list **\n");
+
+
     }
 
 

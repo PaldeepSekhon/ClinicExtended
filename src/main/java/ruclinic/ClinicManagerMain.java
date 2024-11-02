@@ -6,7 +6,17 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-
+/**
+ * The ClinicManagerMain class serves as the entry point for the RUClinic Appointment Manager
+ * application. It initializes the JavaFX application, loads the FXML layout, and sets up the main
+ * application stage with the designated title and scene.
+ *
+ * This class launches the GUI for scheduling, canceling, and rescheduling appointments within
+ * the clinic.
+ *
+ * @author Paldeep Sekhon
+ * @author Aditya Ponni
+ */
 public class ClinicManagerMain extends Application {
     @Override
     public void start(Stage stage) throws IOException {
