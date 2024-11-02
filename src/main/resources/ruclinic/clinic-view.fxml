@@ -122,7 +122,7 @@
                         </VBox>
 
                         <!-- Action Buttons -->
-                        <HBox alignment="CENTER" spacing="10" GridPane.columnSpan="4" GridPane.rowIndex="7">
+                        <HBox alignment="CENTER" spacing="10" GridPane.columnSpan="4" GridPane.rowIndex="9">
                             <Button onAction="#handleScheduleAppointment" styleClass="primary-button" text="_Schedule" />
                             <Button onAction="#handleCancelAppointment" styleClass="danger-button" text="_Cancel" />
                             <Button onAction="#handleLoadProviderButton" text="Load Provider" />
@@ -131,7 +131,8 @@
 
 
                         <!-- Status Messages -->
-                        <TextArea fx:id="statusMessageArea" editable="false" prefHeight="100" styleClass="status-area" wrapText="true" GridPane.columnSpan="4" GridPane.rowIndex="9" />
+                        <TextArea fx:id="statusMessageArea" editable="false" prefHeight="100" styleClass="status-area" wrapText="true" GridPane.columnSpan="4" GridPane.rowIndex="11" />
+                  <Label text="**If canceling, no need to select provider" GridPane.columnIndex="1" GridPane.rowIndex="8" />
                   <columnConstraints>
                      <ColumnConstraints />
                      <ColumnConstraints />
@@ -139,6 +140,8 @@
                      <ColumnConstraints />
                   </columnConstraints>
                   <rowConstraints>
+                     <RowConstraints />
+                     <RowConstraints />
                      <RowConstraints />
                      <RowConstraints />
                      <RowConstraints />
