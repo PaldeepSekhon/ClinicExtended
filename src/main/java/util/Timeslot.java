@@ -52,39 +52,29 @@ public class Timeslot implements Comparable<Timeslot> {
 
     public static Timeslot fromString(String input) {
         try {
-            int slotNumber = Integer.parseInt(input); // Attempt to parse the input
-            switch (slotNumber) {
-                case 1:
-                    return new Timeslot(9, 0);
-                case 2:
-                    return new Timeslot(9, 30);
-                case 3:
-                    return new Timeslot(10, 0);
-                case 4:
-                    return new Timeslot(10, 30);
-                case 5:
-                    return new Timeslot(11, 0);
-                case 6:
-                    return new Timeslot(11, 30);
-                case 7:
-                    return new Timeslot(14, 0);
-                case 8:
-                    return new Timeslot(14, 30);
-                case 9:
-                    return new Timeslot(15, 0);
-                case 10:
-                    return new Timeslot(15, 30);
-                case 11:
-                    return new Timeslot(16, 0);
-                case 12:
-                    return new Timeslot(16, 30);
-                default:
-                    return null; // Invalid slot number
+            // Split the time and period parts (e.g., "9:00 AM" -> ["9:00", "AM"])
+            String[] parts = input.split(" ");
+            String time = parts[0];
+            String period = parts[1];
+
+            // Split hours and minutes (e.g., "9:00" -> ["9", "00"])
+            String[] timeParts = time.split(":");
+            int hour = Integer.parseInt(timeParts[0]);
+            int minute = Integer.parseInt(timeParts[1]);
+
+            // Convert hour to 24-hour format if necessary
+            if ("PM".equalsIgnoreCase(period) && hour != 12) {
+                hour += 12;
+            } else if ("AM".equalsIgnoreCase(period) && hour == 12) {
+                hour = 0;
             }
-        } catch (NumberFormatException e) {
-            return null; // Return null for invalid inputs
+
+            return new Timeslot(hour, minute);
+        } catch (Exception e) {
+            return null; // Return null if the input format is invalid
         }
     }
+
 
     public int getHour() {
         return hour;

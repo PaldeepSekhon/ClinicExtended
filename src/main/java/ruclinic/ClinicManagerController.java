@@ -296,6 +296,15 @@ public class ClinicManagerController{
             nullField();
             return;
         }
+
+        // Convert the selected time slot to Timeslot object
+        Timeslot timeslotObj = Timeslot.fromString(selectedTimeSlot);
+        if (timeslotObj == null) {
+            statusMessageArea.appendText("Error: Invalid or null timeslot selected.\n");
+            nullField();
+            return;
+        }
+
         if (officeVisitRadio.isSelected() && selectedProviderNPI == null) {
             statusMessageArea.appendText("Error: Please select a provider.\n");
             nullField();
@@ -352,9 +361,6 @@ public class ClinicManagerController{
             return;
         }
 
-
-        // Convert the selected time slot to Timeslot object
-        Timeslot timeslotObj = Timeslot.fromString(selectedTimeSlot);
 
         // Patient profile creation
         Profile profile = new Profile(firstName, lastName, new Date(dobField.getValue().getYear(), dobField.getValue().getMonthValue(), dobField.getValue().getDayOfMonth()));
