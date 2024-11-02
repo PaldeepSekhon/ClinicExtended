@@ -37,22 +37,28 @@ public class ClinicManagerController{
 
     public TableColumn list_appointmentDateColumn;
     public TableColumn list_providerNameColumn;
-    public TableColumn list_appointmentTimeColumn;
+
     public TableColumn list_countyColumn;
-    public TableView appointmentListTable;
+    public TableColumn list_timeslot;
+    public TableColumn list_name;
+    @FXML private TableView <String> appointmentListTable;
     public ListView sortOrderListView;
-    public ComboBox sortOptionsComboBox;
-    public ComboBox appointmentTypeComboBox;
+    @FXML private ComboBox<String> sortOptionsComboBox;
+    @FXML private ComboBox<String> appointmentTypeComboBox;
     public TableColumn zipColumn;
     public TableColumn countyColumn;
     public TableColumn cityColumn;
     public TableView clinicLocationsTable;
-    public ComboBox newTimeSlotComboBox;
-    public TextField rescheduleFirstNameField;
-    public TextField rescheduleLastNameField;
-    public DatePicker rescheduleDOBField;
-    public ComboBox oldTimeSlotComboBox;
-    public DatePicker originalDateField;
+
+    //Reschedule
+    @FXML private TextField rescheduleFirstNameField;
+    @FXML private TextField rescheduleLastNameField;
+    @FXML private DatePicker rescheduleDOBField;
+    @FXML  private ComboBox<String> oldTimeSlotComboBox;
+    @FXML private DatePicker originalDateField;
+    @FXML private ComboBox<String> newTimeSlotComboBox;
+
+
     private util.List<Appointment> appointments; // List to hold all appointments
     private util.List<Provider> providers; // Single list for all providers
     private CircularLinkedList technicianList;
@@ -79,6 +85,8 @@ public class ClinicManagerController{
     @FXML private VBox imagingBox;
     @FXML private ComboBox<String> imagingTypeComboBox;
 
+    @FXML private ComboBox<String> sortOptionComboBox;
+
 
     // Reports Fields
     @FXML private DatePicker reportStartDate;
@@ -93,6 +101,8 @@ public class ClinicManagerController{
     // Status Areas
     @FXML private TextArea statusMessageArea;
     @FXML private TextArea providerStatusArea;
+    @FXML private TextArea tab_textbox;
+    @FXML private TextArea rescheduleTextArea;
 
     @FXML private HBox loadProviders;
     @FXML private HBox cancelAppointment;
@@ -101,6 +111,16 @@ public class ClinicManagerController{
 
     private String selectedProviderNPI;
     private String selectedTimeSlot;
+
+
+    //Sorting
+    private String selectedSortOrder;
+    private String selectedAppointmentType;
+
+    private String selectedOldTimeSlot;
+    private String selectedNewTimeSlot;
+
+
 
     ObservableList<String> timeSlots = FXCollections.observableArrayList(
             "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
@@ -111,6 +131,9 @@ public class ClinicManagerController{
 
 
         timeSlotComboBox.setItems(FXCollections.observableArrayList(timeSlots));
+        oldTimeSlotComboBox.setItems(FXCollections.observableArrayList(timeSlots));
+        newTimeSlotComboBox.setItems(FXCollections.observableArrayList(timeSlots));
+
 
         imagingTypeComboBox.setItems(FXCollections.observableArrayList("XRAY", "ULTRASOUND", "CATSCAN"));
 
@@ -130,10 +153,34 @@ public class ClinicManagerController{
             }
         });
 
+        oldTimeSlotComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                selectedOldTimeSlot = newValue;
+            }
+        });
+
+        newTimeSlotComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                selectedNewTimeSlot = newValue;
+            }
+        });
+
         // Set up listener for providerNPIComboBox to capture selected provider NPI
         providerNPIComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && newValue.contains("#")) {
                 selectedProviderNPI = newValue.replaceAll(".*#(\\d{2}).*", "$1");
+            }
+        });
+
+        sortOptionsComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                selectedSortOrder = newValue;
+            }
+        });
+
+        appointmentTypeComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                selectedAppointmentType = newValue;
             }
         });
 
@@ -224,27 +271,27 @@ public class ClinicManagerController{
         //print
         ObservableList<String> providerOptions = FXCollections.observableArrayList();
         Sort.provider(providers); // Sort by provider profile
-
+        String providerDetails = "";
         for (Provider provider : providers) {
-            String providerDetails = String.format("[%s %s %s, %s, %s %s]",
-                    provider.getProfile().getFirstName(),
-                    provider.getProfile().getLastName(),
-                    provider.getProfile().getDob(),
-                    provider.getLocation().getCity(),
-                    provider.getLocation().getCounty(),
-                    provider.getLocation().getZip());
 
-            if (provider instanceof Doctor) {
+            if(provider instanceof Doctor)
+            {
                 Doctor doctor = (Doctor) provider;
-                // Display doctor's specialty and NPI, using the testing methods
+                 providerDetails = String.format("[%s %s %s, %s, %s %s]",
+                        provider.getProfile().getFirstName(),
+                        provider.getProfile().getLastName(),
+                        provider.getProfile().getDob(),
+                        provider.getLocation().getCity(),
+                        provider.getLocation().getCounty(),
+                        provider.getLocation().getZip());
+
                 providerDetails += String.format("[%s, #%s]",
                         doctor.getSpecialty().getNameOnly(),
                         doctor.getNpi());
-            } else if (provider instanceof Technician) {
-                Technician technician = (Technician) provider;
-                // Display technician's rate per visit formatted to two decimal places
-                providerDetails += String.format("[rate: $%.2f]", (double) technician.rate());
             }
+
+
+
 
             statusMessageArea.appendText(providerDetails);
             providerOptions.add(providerDetails);
@@ -434,6 +481,8 @@ public class ClinicManagerController{
 
 
 
+
+
     @FXML
     private void handlePatientSearch(ActionEvent event) {
 
@@ -442,10 +491,88 @@ public class ClinicManagerController{
     @FXML
     private void handleCancelAppointment(ActionEvent event) {
 
+        String firstName = patientFirstNameField.getText();
+        String lastName = patientLastNameField.getText();
+        LocalDate localAppointmentDate = appointmentDateField.getValue();
+        Date appointmentDate = new Date(localAppointmentDate.getYear(), localAppointmentDate.getMonthValue(), localAppointmentDate.getDayOfMonth());
+        Timeslot timeslotObj = Timeslot.fromString(selectedTimeSlot);
+        LocalDate localDOB = dobField.getValue();
+        Date dobDate = new Date(localDOB.getYear(), localDOB.getMonthValue(), localDOB.getDayOfMonth());
+
+        boolean found = false;
+        for (Appointment appt : appointments) {
+            if (appt.getPatient().getFirstName().equalsIgnoreCase(firstName)
+                    && appt.getPatient().getLastName().equalsIgnoreCase(lastName)
+                    && appt.getDate().equals(
+                    appointmentDate)
+                    && appt.getTimeslot().equals(timeslotObj)) {
+                appointments.remove(appt);
+                statusMessageArea.appendText(String.format("%s %s - %s %s %s - appointment has been canceled.%n",
+                        appointmentDate, timeslotObj, firstName, lastName, dobDate));
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            statusMessageArea.appendText(String.format("%s %s - %s %s %s - appointment does not exist.%n",
+                    appointmentDate, timeslotObj, firstName, lastName, dobDate));
+        }
     }
 
     @FXML
     private void handleRescheduleAppointment(ActionEvent event) {
+        String firstName = rescheduleFirstNameField.getText();
+        String lastName = rescheduleLastNameField.getText();
+        LocalDate localRescheduleDob = rescheduleDOBField.getValue();
+        Date rescheduleDob = new Date(localRescheduleDob.getYear(), localRescheduleDob.getMonthValue(), localRescheduleDob.getDayOfMonth());
+        LocalDate localRescheduleOriginalDate = originalDateField.getValue();
+        Date rescheduleOriginalDate = new Date(localRescheduleOriginalDate.getYear(), localRescheduleOriginalDate.getMonthValue(), localRescheduleOriginalDate.getDayOfMonth());
+        Timeslot oldtimeSlot = Timeslot.fromString(selectedOldTimeSlot);
+        Timeslot newtimeSlot = Timeslot.fromString(selectedNewTimeSlot);
+
+        boolean hasConflict = false;
+        for (Appointment appt : appointments) {
+            if (appt.getPatient().getFirstName().equalsIgnoreCase(firstName)
+                    && appt.getPatient().getLastName().equalsIgnoreCase(lastName)
+                    && appt.getDate().equals(rescheduleOriginalDate)
+                    && appt.getTimeslot().equals(newtimeSlot)) {
+                hasConflict = true;
+                break;
+            }
+        }
+
+        if (hasConflict) {
+            rescheduleTextArea.appendText(String.format("%s %s %s %s has an existing appointment at %s %s%n",
+                    firstName, lastName, rescheduleDob, "on", rescheduleOriginalDate, newtimeSlot));
+            return; // Exit the method if there's a conflict
+        }
+
+        boolean found = false;
+        for (Appointment appt : appointments) {
+            if (appt.getPatient().getFirstName().equalsIgnoreCase(firstName)
+                    && appt.getPatient().getLastName().equalsIgnoreCase(lastName)
+                    && appt.getDate().equals(rescheduleOriginalDate)
+                    && appt.getTimeslot().equals(oldtimeSlot)) {
+                appt.setTimeSlot(newtimeSlot); // Reschedule
+                rescheduleTextArea.appendText(String.format("Rescheduled to %s %s %s %s [%s, %s, %s]%n",
+                        localRescheduleOriginalDate, newtimeSlot, firstName, lastName,
+                        appt.getProvider().getProfile().getFirstName(), // Assuming provider has a profile with a
+                        // name
+                        appt.getProvider().getLocation().getCity(),
+                        appt.getProvider().getLocation().getCounty()));
+                found = true;
+
+            }
+        }
+
+        if (!found) {
+            rescheduleTextArea.appendText(String.format("%s %s %s %s does not exist.%n",
+                    rescheduleOriginalDate, oldtimeSlot, firstName, lastName));
+        }
+
+
+
+
 
     }
 
@@ -502,6 +629,93 @@ public class ClinicManagerController{
     }
 
     public void handleClearSortOrder(ActionEvent actionEvent) {
+
+    }
+
+    @FXML
+    private  void handleDisplaySorting(ActionEvent actionEvent) {
+
+        if(selectedSortOrder.equals("date,time,name")&&selectedAppointmentType.equals("All Appointments"))
+        {
+            tab_textbox.appendText("** List of all appointments, ordered by date/time/provider.\n");
+            Sort.appointmentByDateTimeAndProvider(appointments);
+            listAllAppointments();
+            tab_textbox.appendText("** end of list\n");
+
+        }
+        if(selectedSortOrder.equals("patient,date,time")&&selectedAppointmentType.equals("All Appointments"))
+        {
+            tab_textbox.appendText("** List of all appointments, ordered by patient/date/time.\n");
+            Sort.appointment(appointments,'p');
+            listAllAppointments();
+            tab_textbox.appendText("** end of list\n");
+
+        }
+        if(selectedSortOrder.equals("county,date,time")&&selectedAppointmentType.equals("All Appointments"))
+        {
+            tab_textbox.appendText("** List of all appointments, ordered by county/date/time.\n");
+            Sort.appointmentByCounty(appointments);
+            listAllAppointments();
+            tab_textbox.appendText("** end of list\n");
+
+        }
+
+
+        if(selectedSortOrder.equals("date,time,name")&&selectedAppointmentType.equals("Imaging"))
+        {
+            tab_textbox.appendText("** List of Imaging appointments, ordered by date/time/provider.\n");
+            Sort.appointmentByDateTimeAndProvider(appointments);
+            listImagingAppointments();
+            tab_textbox.appendText("** end of list\n");
+
+
+        }
+        if(selectedSortOrder.equals("patient,date,time")&&selectedAppointmentType.equals("Imaging"))
+        {
+            tab_textbox.appendText("** List of Imaging appointments, ordered by patient/date/time.\n");
+            Sort.appointment(appointments,'p');
+            listImagingAppointments();
+            tab_textbox.appendText("** end of list\n");
+
+        }
+        if(selectedSortOrder.equals("county,date,time")&&selectedAppointmentType.equals("Imaging"))
+        {
+            tab_textbox.appendText("** List of Imaging appointments, ordered by county/date/time.\n");
+            Sort.appointmentByCounty(appointments);
+            listImagingAppointments();
+            tab_textbox.appendText("** end of list\n");
+
+        }
+
+
+        if(selectedSortOrder.equals("date,time,name")&&selectedAppointmentType.equals("Office Appointments"))
+        {
+            tab_textbox.appendText("** List of Office appointments, ordered by date/time/provider.\n");
+            Sort.appointmentByDateTimeAndProvider(appointments);
+            listOfficeAppointments();
+            tab_textbox.appendText("** end of list\n");
+
+
+        }
+        if(selectedSortOrder.equals("patient,date,time")&&selectedAppointmentType.equals("Office Appointments"))
+        {
+            tab_textbox.appendText("** List of Office appointments, ordered by patient/date/time.\n");
+            Sort.appointment(appointments,'p');
+            listOfficeAppointments();
+            tab_textbox.appendText("** end of list\n");
+
+        }
+        if(selectedSortOrder.equals("county,date,time")&&selectedAppointmentType.equals("Office Appointments"))
+        {
+            tab_textbox.appendText("** List of Office appointments, ordered by county/date/time.\n");
+            Sort.appointmentByCounty(appointments);
+            listOfficeAppointments();
+            tab_textbox.appendText("** end of list\n");
+
+        }
+
+
+
     }
 
     private Technician lastAssignedTechnician = null;
@@ -576,6 +790,113 @@ public class ClinicManagerController{
 
         return true;
     }
+
+    private void listOfficeAppointments() {
+
+        // Sort appointments by county, date, and timeslot
+
+        // Display sorted appointments
+        for (Appointment appointment : appointments) {
+            if (!(appointment instanceof Imaging)) { // Only list office appointments
+                displayRegularAppointment(appointment);
+            }
+        }
+
+    }
+
+    private void listAllAppointments() {
+        for (Appointment appointment : appointments) {
+            if (appointment instanceof Imaging) {
+                displayImagingAppointment((Imaging) appointment);
+            } else {
+                displayRegularAppointment(appointment);
+
+            }
+        }
+    }
+
+    private void displayImagingAppointment(Imaging imagingAppointment) {
+        String appointmentDate = imagingAppointment.getDate().toString();
+        String timeslot = imagingAppointment.getTimeslot().toString();
+        Person patient = imagingAppointment.getPatient();
+        Provider provider = imagingAppointment.getProvider();
+        String roomType = imagingAppointment.getRoom().toString();
+        double rate = provider.rate();
+
+        tab_textbox.appendText(String.format("%s %s %s %s %s [%s %s %s, %s, %s %s][rate: $%.2f][%s]%n",
+                appointmentDate,
+                timeslot,
+                patient.getProfile().getFirstName(),
+                patient.getProfile().getLastName(),
+                patient.getProfile().getDob(),
+
+                provider.getProfile().getFirstName(),
+                provider.getProfile().getLastName(),
+                provider.getProfile().getDob(),
+
+                provider.getLocation().getCity(),
+                provider.getLocation().getCounty(),
+                provider.getLocation().getZip(),
+                rate,
+                roomType));
+    }
+
+    private void displayRegularAppointment(Appointment appointment) {
+        Person patient = appointment.getPatient();
+        Provider provider = appointment.getProvider();
+        Doctor doctor = (Doctor) provider; // Cast the provider to Doctor
+
+        tab_textbox.appendText(String.format("%s %s %s %s %s [%s %s %s, %s, %s %s][%s, #%s]%n",
+                appointment.getDate(),
+                appointment.getTimeslot(),
+                patient.getProfile().getFirstName(),
+                patient.getProfile().getLastName(),
+                patient.getProfile().getDob(),
+                doctor.getProfile().getFirstName(),
+                doctor.getProfile().getLastName(),
+                doctor.getProfile().getDob(),
+                doctor.getLocation().getCity(),
+                doctor.getLocation().getCounty(),
+                doctor.getLocation().getZip(),
+                doctor.getSpecialty().name(),
+                doctor.getNpi()));
+    }
+
+
+    private void listImagingAppointments() {
+
+        for (Appointment appointment : appointments) {
+            if (appointment instanceof Imaging) { // Only display imaging appointments
+                Imaging imagingAppointment = (Imaging) appointment; // Cast to Imaging to access additional details
+
+                // Extract details from the imaging appointment
+                String appointmentDate = imagingAppointment.getDate().toString(); // Assuming toString returns the
+                // desired date format
+                String timeslot = imagingAppointment.getTimeslot().toString(); // Assuming toString returns the desired
+                // timeslot format
+                Person patient = imagingAppointment.getPatient(); // Get patient details
+                Provider provider = imagingAppointment.getProvider(); // Get provider details
+                String roomType = imagingAppointment.getRoom().toString(); // Get the imaging room type
+                double rate = provider.rate(); // Assuming rate is a method in Provider
+
+                // Print formatted output
+                tab_textbox.appendText(String.format("%s %s %s %s [%s %s, %s, %s, %s][rate: $%.2f][%s]%n",
+                        appointmentDate, // Date of appointment
+                        timeslot, // Timeslot of appointment
+                        patient.getProfile().getFirstName(), // Patient's first name
+                        patient.getProfile().getLastName(), // Patient's last name
+                        provider.getProfile().getFirstName(), // Provider's first name
+                        provider.getProfile().getDob(), // Provider's date of birth
+                        provider.getLocation().getCity(), // Provider's city
+                        provider.getLocation().getCounty(), // Provider's county
+                        provider.getLocation().getZip(), // Provider's ZIP code
+                        rate, // Rate charged by provider
+                        roomType)); // Imaging room type
+            }
+        }
+    }
+
+
 }
 
 
