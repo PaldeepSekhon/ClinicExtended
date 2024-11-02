@@ -34,9 +34,9 @@
                         </TextField>
 
                         <Label mnemonicParsing="true" text="_Birth Date:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-                        <DatePicker fx:id="dobField" promptText="MM/DD/YYYY" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                        <DatePicker fx:id="dobField" promptText="MM/DD/YYYY" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="2">
                             <tooltip>
-                                <Tooltip text="Select patient's date of birth" />
+                                <Tooltip text="Select patient's date of birth using selector" />
                             </tooltip>
                         </DatePicker>
 
@@ -44,9 +44,9 @@
                         <Label style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Appointment Details" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="3" />
 
                         <Label mnemonicParsing="true" text="_Date:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
-                        <DatePicker fx:id="appointmentDateField" promptText="Select date" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                        <DatePicker fx:id="appointmentDateField" promptText="Select date" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="4">
                             <tooltip>
-                                <Tooltip text="Select appointment date" />
+                                <Tooltip text="Select appointment date using selector" />
                             </tooltip>
                         </DatePicker>
 
@@ -170,9 +170,9 @@
                         <Label style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Reschedule Appointment" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="0" />
 
                         <Label text="Original Date:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                        <DatePicker fx:id="originalDateField" promptText="Select original date" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <DatePicker fx:id="originalDateField" promptText="Select original date" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1">
                             <tooltip>
-                                <Tooltip text="Select the original appointment date" />
+                                <Tooltip text="Select the original appointment date using selector" />
                             </tooltip>
                         </DatePicker>
 
@@ -207,7 +207,7 @@
                         <TextField fx:id="rescheduleLastNameField" promptText="Enter last name" GridPane.columnIndex="1" GridPane.rowIndex="4" />
 
                         <Label text="Date of Birth:" GridPane.columnIndex="0" GridPane.rowIndex="5" />
-                        <DatePicker fx:id="rescheduleDOBField" promptText="MM/DD/YYYY" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                        <DatePicker fx:id="rescheduleDOBField" promptText="MM/DD/YYYY" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="5" />
 
                         <!-- New Appointment Time Slot -->
                         <Label text="New Time Slot:" GridPane.columnIndex="0" GridPane.rowIndex="6" />
@@ -267,10 +267,13 @@
 
                     <!-- Clinic Locations Table -->
                     <TableView fx:id="clinicLocationsTable" VBox.vgrow="ALWAYS">
+                        <columnResizePolicy>
+                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                        </columnResizePolicy>
                         <columns>
-                            <TableColumn fx:id="cityColumn" text="City" />
-                            <TableColumn fx:id="countyColumn" text="County" />
-                            <TableColumn fx:id="zipColumn" text="Zip" />
+                            <TableColumn fx:id="cityColumn" text="City" prefWidth="150.0" />
+                            <TableColumn fx:id="countyColumn" text="County" prefWidth="150.0" />
+                            <TableColumn fx:id="zipColumn" text="Zip" prefWidth="100.0" />
                         </columns>
                         <placeholder>
                             <Label text="No clinic locations available" />

@@ -2,6 +2,7 @@ package ruclinic;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import util.*;
@@ -136,6 +137,11 @@ public class ClinicManagerController{
     public void initialize() {
 
 
+        cityColumn.setCellValueFactory(new PropertyValueFactory<>("city"));
+        countyColumn.setCellValueFactory(new PropertyValueFactory<>("county"));
+        zipColumn.setCellValueFactory(new PropertyValueFactory<>("zip"));
+
+
         timeSlotComboBox.setItems(FXCollections.observableArrayList(timeSlots));
         oldTimeSlotComboBox.setItems(FXCollections.observableArrayList(timeSlots));
         newTimeSlotComboBox.setItems(FXCollections.observableArrayList(timeSlots));
@@ -200,7 +206,7 @@ public class ClinicManagerController{
         this.providers = new util.List<>(); // Single Custom List for all providers
         this.technicianList = new CircularLinkedList();
 
-        statusMessageArea.appendText("Status message initialized.\n");  // Test message to confirm setup
+        statusMessageArea.appendText("Running clinic manager..\n");  // Test message to confirm setup
 
 
     }
@@ -212,6 +218,8 @@ public class ClinicManagerController{
 
         // For example, you could fetch provider data from a database or file
         // Here, add your logic to populate the Appointment Management tab with provider details
+        ObservableList<Location> locationData = FXCollections.observableArrayList();
+
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Open Source File for the Import");
         chooser.getExtensionFilters().addAll(new ExtensionFilter("Text Files", "*.txt"),
@@ -250,6 +258,19 @@ public class ClinicManagerController{
                     Provider doctor = new Doctor(profile, location, specialty, npi);
                     providers.add(doctor); // Add to the list of providers
 
+                    boolean locationExists = false;
+                    for(Location existingLocation : locationData) {
+                        if(existingLocation.getCity().equals(location.getCity()) &&
+                                existingLocation.getCounty().equals(location.getCounty()) &&
+                                existingLocation.getZip().equals(location.getZip())) {
+                            locationExists = true;
+                            break;
+                        }
+                    }
+                    if(!locationExists) {
+                        locationData.add(location);
+                    }
+
                 } else if (tokens[0].equalsIgnoreCase("T")) {
                     // Technician
                     String firstName = tokens[1];
@@ -269,6 +290,19 @@ public class ClinicManagerController{
                     // instance
                     providers.add(technician); // Add to the list of providers
                     technicianList.addTechnician(technician);
+
+                    boolean locationExists = false;
+                    for(Location existingLocation : locationData) {
+                        if(existingLocation.getCity().equals(location.getCity()) &&
+                                existingLocation.getCounty().equals(location.getCounty()) &&
+                                existingLocation.getZip().equals(location.getZip())) {
+                            locationExists = true;
+                            break;
+                        }
+                    }
+                    if(!locationExists) {
+                        locationData.add(location);
+                    }
                 }
             }
 
@@ -280,16 +314,15 @@ public class ClinicManagerController{
             statusMessageArea.appendText("Error loading providers: " + e.getMessage());
         }
 
+        clinicLocationsTable.setItems(locationData);
+
         //print
         ObservableList<String> providerOptions = FXCollections.observableArrayList();
         Sort.provider(providers); // Sort by provider profile
-        String providerDetails = "";
         for (Provider provider : providers) {
-
-            if(provider instanceof Doctor)
-            {
+            if(provider instanceof Doctor) {
                 Doctor doctor = (Doctor) provider;
-                 providerDetails = String.format("[%s %s %s, %s, %s %s]",
+                String providerDetails = String.format("[%s %s %s, %s, %s %s]",
                         provider.getProfile().getFirstName(),
                         provider.getProfile().getLastName(),
                         provider.getProfile().getDob(),
@@ -300,14 +333,10 @@ public class ClinicManagerController{
                 providerDetails += String.format("[%s, #%s]",
                         doctor.getSpecialty().getNameOnly(),
                         doctor.getNpi());
+
+                statusMessageArea.appendText(providerDetails);
+                providerOptions.add(providerDetails);
             }
-
-
-
-
-            statusMessageArea.appendText(providerDetails);
-            providerOptions.add(providerDetails);
-
         }
         statusMessageArea.appendText("\n");
         providerNPIComboBox.setItems(providerOptions);
@@ -346,7 +375,14 @@ public class ClinicManagerController{
         // Retrieve patient information
         String firstName = patientFirstNameField.getText();
         String lastName = patientLastNameField.getText();
+
         LocalDate localAppointmentDate = appointmentDateField.getValue();
+        if (localAppointmentDate == null) {
+            statusMessageArea.appendText("Error: Please select a valid appointment date.\n");
+            nullField();
+            return;
+        }
+
         Date appointmentDate = new Date(localAppointmentDate.getYear(), localAppointmentDate.getMonthValue(), localAppointmentDate.getDayOfMonth());
 
         // Verify if the time slot and provider are selected
