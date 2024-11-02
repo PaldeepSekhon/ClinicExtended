@@ -109,6 +109,7 @@ public class ClinicManagerController{
 
     public void initialize() {
 
+
         timeSlotComboBox.setItems(FXCollections.observableArrayList(timeSlots));
 
         imagingTypeComboBox.setItems(FXCollections.observableArrayList("XRAY", "ULTRASOUND", "CATSCAN"));
@@ -122,9 +123,26 @@ public class ClinicManagerController{
             }
         });
 
+        // Set up listener for timeSlotComboBox to capture selected time slot
+        timeSlotComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                selectedTimeSlot = newValue;
+            }
+        });
+
+        // Set up listener for providerNPIComboBox to capture selected provider NPI
+        providerNPIComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null && newValue.contains("#")) {
+                selectedProviderNPI = newValue.replaceAll(".*#(\\d{2}).*", "$1");
+            }
+        });
+
         this.appointments = new util.List<>(); // Custom List for appointments
         this.providers = new util.List<>(); // Single Custom List for all providers
         this.technicianList = new CircularLinkedList();
+
+        statusMessageArea.appendText("Status message initialized.\n");  // Test message to confirm setup
+
 
     }
 
@@ -266,183 +284,148 @@ public class ClinicManagerController{
 
     @FXML
     private void handleScheduleAppointment(ActionEvent event) {
+        // Retrieve patient information
         String firstName = patientFirstNameField.getText();
         String lastName = patientLastNameField.getText();
         LocalDate localAppointmentDate = appointmentDateField.getValue();
         Date appointmentDate = new Date(localAppointmentDate.getYear(), localAppointmentDate.getMonthValue(), localAppointmentDate.getDayOfMonth());
-        String timeSlot = timeSlotComboBox.getValue();
-        LocalDate dobLocalDate = dobField.getValue();
-        Date dob = new Date(dobLocalDate.getYear(), dobLocalDate.getMonthValue(), dobLocalDate.getDayOfMonth());
 
-        if (!appointmentDate.isValid()) {
-            statusMessageArea.appendText("Appointment date: " + appointmentDate + " is not a valid calendar date.");
+        // Verify if the time slot and provider are selected
+        if (selectedTimeSlot == null) {
+            statusMessageArea.appendText("Error: Please select a time slot.\n");
+            nullField();
             return;
         }
-        // Check if the appointment is today or before today
+        if (officeVisitRadio.isSelected() && selectedProviderNPI == null) {
+            statusMessageArea.appendText("Error: Please select a provider.\n");
+            nullField();
+            return;
+        }
+
+        // Validate date and other appointment constraints
+        if (!appointmentDate.isValid()) {
+            statusMessageArea.appendText("Error: Appointment date " + appointmentDate + " is not a valid calendar date.\n");
+            nullField();
+            return;
+        }
+
         Date today = new Date(Calendar.getInstance().get(Calendar.YEAR),
                 Calendar.getInstance().get(Calendar.MONTH) + 1,
                 Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
         if (appointmentDate.compareTo(today) <= 0) {
-            statusMessageArea.appendText("Appointment date: " + appointmentDate + " is today or a date before today.");
+            statusMessageArea.appendText("Error: Appointment date " + appointmentDate + " is today or a date before today.\n");
+            nullField();
             return;
         }
 
-        // Check if the appointment is on a weekend
         if (appointmentDate.isWeekend()) {
-            statusMessageArea.appendText("Appointment date: " + appointmentDate + " is Saturday or Sunday.");
+            statusMessageArea.appendText("Error: Appointment date " + appointmentDate + " is Saturday or Sunday.\n");
+            nullField();
             return;
         }
 
-        // Check if the appointment is within six months
         if (!appointmentDate.isWithinSixMonths()) {
-            statusMessageArea.appendText("Appointment date: " + appointmentDate + " is not within six months.");
+            statusMessageArea.appendText("Error: Appointment date " + appointmentDate + " is not within six months.\n");
+            nullField();
             return;
         }
-        timeSlotComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                selectedTimeSlot = String.valueOf(timeSlots.indexOf(newValue) + 1); // Get the position as 1-based index
 
-            }
-        });
+        LocalDate localDOB = dobField.getValue();
+        if (localDOB == null) {
+            statusMessageArea.appendText("Error: Date of birth is not selected.\n");
+            return;
+        }
 
+        Date dobDate = new Date(localDOB.getYear(), localDOB.getMonthValue(), localDOB.getDayOfMonth());
+
+        // Check if dobDate is valid
+        if (!dobDate.isValid()) {
+            statusMessageArea.appendText("Patient dob: " + dobDate + " is not a valid calendar date.\n");
+            nullField();
+            return;
+        }
+
+        // Check if dobDate is today or a future date
+        if (dobDate.compareTo(today) >= 0) {
+            statusMessageArea.appendText("Patient dob: " + dobDate + " is today or a day after today.\n");
+            nullField();
+            return;
+        }
+
+
+        // Convert the selected time slot to Timeslot object
         Timeslot timeslotObj = Timeslot.fromString(selectedTimeSlot);
 
-
-        Profile profile = new Profile(firstName, lastName, dob);
+        // Patient profile creation
+        Profile profile = new Profile(firstName, lastName, new Date(dobField.getValue().getYear(), dobField.getValue().getMonthValue(), dobField.getValue().getDayOfMonth()));
         Person patient = new Person(profile);
 
+        // Check for duplicate appointments
         for (Appointment appt : appointments) {
             if (appt.getPatient().getProfile().equals(profile) &&
                     appt.getDate().equals(appointmentDate) &&
-                    appt.getTimeslot().toString().equals(selectedTimeSlot)) {
-                System.out.println(firstName + " " + lastName + " " + dob.toString()
-                        + " has an existing appointment at the same time slot.");
+                    appt.getTimeslot().equals(timeslotObj)) {
+                statusMessageArea.appendText("Error: Appointment already exists for " + firstName + " " + lastName + " at the same time slot.\n");
+                nullField();
                 return;
             }
         }
 
-        if(officeVisitRadio.isSelected()) {
-            providerNPIComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-                if (newValue != null && newValue.contains("#")) { // Ensure there is an NPI in the format
-                    // Regex to capture the NPI number after '#'
-                    selectedProviderNPI = newValue.replaceAll(".*#(\\d{2}).*", "$1"); // Captures the NPI as a group
-
-
-                    // You can then use `npi` as needed, e.g., store it, display it, etc.
-                }
-            });
-
-            statusMessageArea.appendText(selectedProviderNPI);
-
+        // Office Visit Appointment
+        if (officeVisitRadio.isSelected()) {
             Provider provider = findProviderByNPI(selectedProviderNPI);
 
             if (provider == null) {
-                statusMessageArea.appendText(selectedProviderNPI + " - provider doesn't exist.");
+                statusMessageArea.appendText("Error: Provider with NPI " + selectedProviderNPI + " does not exist.\n");
+                nullField();
                 return;
             }
 
-
             if (!isProviderAvailable(provider, appointmentDate, timeslotObj)) {
-                Doctor doctor = (Doctor) provider;
-                statusMessageArea.appendText(String.format("[%s %s %s, %s, %s %s][%s, #%s] is not available at slot %s.",
-                        doctor.getProfile().getFirstName(),
-                        doctor.getProfile().getLastName(),
-                        doctor.getProfile().getDob(),
-                        doctor.getLocation().getCity(),
-                        doctor.getLocation().getCounty(),
-                        doctor.getLocation().getZip(),
-                        doctor.getSpecialty().getNameOnly(),
-                        doctor.getNpi(),
-                        timeslotObj.toString()));
+                statusMessageArea.appendText("Error: Provider is not available at the selected time slot.\n");
+                nullField();
                 return;
             }
 
             Appointment newAppointment = new Appointment(appointmentDate, timeslotObj, patient, provider);
             appointments.add(newAppointment);
-
-            Doctor doctor = (Doctor) provider;
-            statusMessageArea.appendText(String.format("%s %s %s %s %s [%s %s %s, %s, %s %s][%s, #%s] booked.%n",
-                    appointmentDate,
-                    timeslotObj,
-                    firstName,
-                    lastName,
-                    dob.toString(),
-                    doctor.getProfile().getFirstName(),
-                    doctor.getProfile().getLastName(),
-                    doctor.getProfile().getDob(),
-                    doctor.getLocation().getCity(),
-                    doctor.getLocation().getCounty(),
-                    doctor.getLocation().getZip(),
-                    doctor.getSpecialty().getNameOnly(),
-                    doctor.getNpi()));
-
-
-            statusMessageArea.appendText("Scheduling appointment for " + firstName + " " + lastName +
-                    " on " + appointmentDate + " at " + timeSlot + " with " + provider.getFirstName() + "\n");
+            statusMessageArea.appendText("Appointment scheduled successfully for " + firstName + " " + lastName + " on " + appointmentDate + " at " + selectedTimeSlot + " with " + provider.getFirstName() + ".\n");
         }
 
-        if (imagingRadio.isSelected()){
-
+        // Imaging Appointment
+        if (imagingRadio.isSelected()) {
             String imagingService = imagingTypeComboBox.getSelectionModel().getSelectedItem();
             Technician technician = assignTechnicianForService(imagingService, appointmentDate, timeslotObj);
+
             if (technician == null) {
-                System.out.printf("Cannot find an available technician at all locations for %s at slot %s.%n",
-                        imagingService.toUpperCase(),
-                        timeSlot);
+                statusMessageArea.appendText("Error: No available technician for " + imagingService + " at the selected time slot.\n");
+                nullField();
                 return;
             }
-
 
             Radiology room = Radiology.valueOf(imagingService.toUpperCase());
             Imaging imagingAppointment = new Imaging(appointmentDate, timeslotObj, patient, technician, room);
             appointments.add(imagingAppointment);
-
-            statusMessageArea.appendText(String.format("%s %s %s %s %s [%s %s %s, %s, %s %s][rate: $%.2f][%s] booked.%n",
-                    appointmentDate,
-                    timeslotObj,
-                    firstName,
-                    lastName,
-                    dob.toString(),
-                    technician.getProfile().getFirstName(),
-                    technician.getProfile().getLastName(),
-                    technician.getProfile().getDob().toString(),
-                    technician.getLocation().getCity(),
-                    technician.getLocation().getCounty(),
-                    technician.getLocation().getZip(),
-                    (double) technician.rate(),
-                    imagingService.toUpperCase()));
-
+            statusMessageArea.appendText("Imaging appointment scheduled successfully for " + firstName + " " + lastName + " on " + appointmentDate + " at " + selectedTimeSlot + " with technician " + technician.getFirstName() + ".\n");
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // Check if the provider is available at the specified timeslot
-
-
-
-
-
-
-
-
-
-
-
-        // Implement scheduling logic here
-
-
+        // Reset fields for next scheduling
+        nullField();
 
     }
+
+    private void nullField() {
+        selectedTimeSlot = null;
+        timeSlotComboBox.getSelectionModel().clearSelection();
+        selectedProviderNPI = null;
+        providerNPIComboBox.getSelectionModel().clearSelection();
+        patientFirstNameField.clear();
+        patientLastNameField.clear();
+        appointmentDateField.setValue(null);
+        dobField.setValue(null);
+    }
+
+
+
 
 
     @FXML
